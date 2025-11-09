@@ -14,11 +14,16 @@ bot.on('text', async (ctx) => {
     await ctx.sendChatAction('typing');
     const userMessage = ctx.message.text;
     
+    // НОВЫЙ URL для Hugging Face API
     const response = await axios.post(
-      'https://api-inference.huggingface.co/models/microsoft/DialoGPT-medium',
+      'https://router.huggingface.co/hf-inference/models/microsoft/DialoGPT-medium',
       {
         inputs: userMessage,
-        parameters: { max_length: 1000, temperature: 0.7 }
+        parameters: { 
+          max_length: 1000, 
+          temperature: 0.7,
+          do_sample: true
+        }
       },
       {
         headers: {
@@ -35,8 +40,18 @@ bot.on('text', async (ctx) => {
     await ctx.reply(aiResponse);
     
   } catch (error) {
-    console.error('Ошибка:', error);
-    await ctx.reply('🧠 Нейросеть думает... Попробуй еще раз!');
+    console.error('Ошибка нейросети:', error);
+    
+    // Запасные ответы
+    const fallbackAnswers = [
+      "🧠 Нейросеть загружается... Попробуй через минуту!",
+      "💭 AI думает слишком долго, задай вопрос короче!",
+      "🤖 Пока использую простые ответы, нейросеть недоступна",
+      "Извини, нейросеть временно не работает 😔"
+    ];
+    
+    const randomAnswer = fallbackAnswers[Math.floor(Math.random() * fallbackAnswers.length)];
+    await ctx.reply(randomAnswer);
   }
 });
 
