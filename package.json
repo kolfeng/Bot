@@ -1,5 +1,5 @@
 {
-  "name": "telegram-ai-bot", 
+  "name": "telegram-ai-bot",
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
