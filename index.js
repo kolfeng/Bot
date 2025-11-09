@@ -7,12 +7,10 @@ const HF_TOKEN = process.env.HF_TOKEN;
 const bot = new Telegraf(BOT_TOKEN);
 const app = express();
 
-// Простой веб-сервер для Render
+// Веб-сервер для Render
 app.get('/', (req, res) => {
   res.send('🤖 AI Bot is running!');
 });
-
-// Запускаем веб-сервер на порту 3000
 app.listen(3000, () => {
   console.log('🌐 Web server started on port 3000');
 });
@@ -27,20 +25,33 @@ bot.on('text', async (ctx) => {
     await ctx.sendChatAction('typing');
     const userMessage = ctx.message.text;
     
-    // Пока используем простые ответы
-    const answers = [
-      "🧠 Я бот с нейросетью! Пока настраиваюсь...",
-      "💭 Скоро я стану умнее!",
-      "🤖 AI модуль загружается...",
-      "Пока отвечаю просто, но скоро научусь!"
-    ];
+    // НОВЫЙ URL для Hugging Face!
+    const response = await axios.post(
+      'https://router.huggingface.co/hf-inference/models/microsoft/DialoGPT-medium',
+      {
+        inputs: userMessage,
+        parameters: { 
+          max_length: 1000, 
+          temperature: 0.7
+        }
+      },
+      {
+        headers: {
+          'Authorization': `Bearer ${HF_TOKEN}`,
+          'Content-Type': 'application/json'
+        },
+        timeout: 30000
+      }
+    );
     
-    const randomAnswer = answers[Math.floor(Math.random() * answers.length)];
-    await ctx.reply(randomAnswer);
+    let aiResponse = response.data[0]?.generated_text || "Извини, не могу придумать ответ";
+    if (aiResponse.length > 4000) aiResponse = aiResponse.substring(0, 4000) + "...";
+    
+    await ctx.reply(aiResponse);
     
   } catch (error) {
-    console.error('Ошибка:', error);
-    await ctx.reply('Упс! Что-то пошло не так.');
+    console.error('Ошибка нейросети:', error);
+    await ctx.reply('🧠 Нейросеть загружается... Попробуй через минуту!');
   }
 });
 
