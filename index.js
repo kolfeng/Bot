@@ -3,7 +3,6 @@ const axios = require('axios');
 const express = require('express');
 
 const BOT_TOKEN = process.env.BOT_TOKEN;
-const HF_TOKEN = process.env.HF_TOKEN;
 const bot = new Telegraf(BOT_TOKEN);
 const app = express();
 
@@ -24,36 +23,27 @@ bot.on('text', async (ctx) => {
     const userMessage = ctx.message.text;
     
     const response = await axios.post(
-      'https://api-inference.huggingface.co/models/gpt2',
+      'https://free.churchless.tech/v1/chat/completions',
       {
-        inputs: userMessage,
-        parameters: { 
-          max_length: 100,
-          temperature: 0.7,
-          return_full_text: false
-        }
+        model: "gpt-3.5-turbo",
+        messages: [
+          {role: "user", content: userMessage}
+        ],
+        max_tokens: 500
       },
       {
         headers: {
-          'Authorization': `Bearer ${HF_TOKEN}`
+          'Content-Type': 'application/json'
         },
-        timeout: 10000
+        timeout: 30000
       }
     );
     
-    let aiResponse = response.data[0]?.generated_text || "Думаю...";
-    if (aiResponse.length > 1000) aiResponse = aiResponse.substring(0, 1000);
-    
+    const aiResponse = response.data.choices[0].message.content;
     await ctx.reply(aiResponse);
     
   } catch (error) {
-    const answers = [
-      "Привет!",
-      "Интересно",
-      "Спроси еще"
-    ];
-    const randomAnswer = answers[Math.floor(Math.random() * answers.length)];
-    await ctx.reply(randomAnswer);
+    await ctx.reply('Нейросеть временно недоступна');
   }
 });
 
