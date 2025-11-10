@@ -25,7 +25,7 @@ bot.on('text', async (ctx) => {
     await ctx.sendChatAction('typing');
     const userMessage = ctx.message.text;
     
-    // НОВЫЙ URL для Hugging Face!
+    // Нейросеть Hugging Face
     const response = await axios.post(
       'https://router.huggingface.co/hf-inference/models/microsoft/DialoGPT-medium',
       {
