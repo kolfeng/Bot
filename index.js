@@ -7,17 +7,15 @@ const HF_TOKEN = process.env.HF_TOKEN;
 const bot = new Telegraf(BOT_TOKEN);
 const app = express();
 
-// Веб-сервер для Render
 app.get('/', (req, res) => {
-  res.send('🤖 AI Bot is running!');
+  res.send('Bot is running');
 });
 app.listen(3000, () => {
-  console.log('🌐 Web server started on port 3000');
+  console.log('Server started');
 });
 
-// Команда /start
 bot.start((ctx) => {
-  ctx.reply('🧠 Привет! Я AI бот с нейросетью! Задай вопрос!');
+  ctx.reply('Привет! Я бот с нейросетью');
 });
 
 bot.on('text', async (ctx) => {
@@ -25,39 +23,42 @@ bot.on('text', async (ctx) => {
     await ctx.sendChatAction('typing');
     const userMessage = ctx.message.text;
     
-    // Нейросеть Hugging Face
     const response = await axios.post(
-      'https://router.huggingface.co/hf-inference/models/microsoft/DialoGPT-medium',
+      'https://api-inference.huggingface.co/models/gpt2',
       {
         inputs: userMessage,
         parameters: { 
-          max_length: 1000, 
-          temperature: 0.7
+          max_length: 100,
+          temperature: 0.7,
+          return_full_text: false
         }
       },
       {
         headers: {
-          'Authorization': `Bearer ${HF_TOKEN}`,
-          'Content-Type': 'application/json'
+          'Authorization': `Bearer ${HF_TOKEN}`
         },
-        timeout: 30000
+        timeout: 10000
       }
     );
     
-    let aiResponse = response.data[0]?.generated_text || "Извини, не могу придумать ответ";
-    if (aiResponse.length > 4000) aiResponse = aiResponse.substring(0, 4000) + "...";
+    let aiResponse = response.data[0]?.generated_text || "Думаю...";
+    if (aiResponse.length > 1000) aiResponse = aiResponse.substring(0, 1000);
     
     await ctx.reply(aiResponse);
     
   } catch (error) {
-    console.error('Ошибка нейросети:', error);
-    await ctx.reply('🧠 Нейросеть загружается... Попробуй через минуту!');
+    const answers = [
+      "Привет!",
+      "Интересно",
+      "Спроси еще"
+    ];
+    const randomAnswer = answers[Math.floor(Math.random() * answers.length)];
+    await ctx.reply(randomAnswer);
   }
 });
 
-// Запуск бота
 bot.launch().then(() => {
-  console.log('🧠 AI бот запущен!');
+  console.log('Bot started');
 });
 
 process.once('SIGINT', () => bot.stop('SIGINT'));
